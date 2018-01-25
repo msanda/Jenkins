@@ -1,0 +1,71 @@
+@Library('Shared_lib')_
+pipeline 
+{
+    //agent none  	Defining agent none at the top-level of the Pipeline ensures that an Executor will not be assigned unnecessarily. Using agent none also forces each stage section contain its own agent section.
+    agent { node{ label 'linux||Windows'} }
+    environment{
+        def gitCredId =""
+        def jobName =""
+        def emailToTeam =""
+	      def buildno =""
+    	  def server  =""
+        def LAST_GOOD_BUILD =""
+        def buildMetaData=""
+        def serverConfigurationsPattern=""
+        def serverConfigurationsTarget=""
+    }
+    parameters{
+        string(name: 'jenkins_build_version',defaultValue:'0.0.0.0',description: 'Version number of artifact')
+    }
+    stages
+    {
+        stage('Initiliazing')
+        {
+            
+            steps
+            {
+                script{
+                    gitCredId 		    = env.SSH_PIPELINE_CRED_ID 
+                    LAST_GOOD_BUILD = "${params.jenkins_build_version}"
+                    ARTIFACT_REPO_PATH = "URLtoArtifactserver"+LAST_GOOD_BUILD
+                }
+            }
+            
+        }
+        stage('Download Deployment Package')
+        {
+            agent{node {label 'windows'}}
+            steps{
+                script{
+                    println "Last good dev build from release/release: "+LAST_GOOD_BUILD;
+                    println "ARTIFACT_REPO_PATH: "+ARTIFACT_REPO_PATH
+                    veracode.uploadSecurityScan(ARTIFACT_REPO_PATH,"UWInsight.zip",LAST_GOOD_BUILD)
+                } 
+            }
+            post{
+                always{
+                step([$class: 'WsCleanup'])  //Make sure agents are cleaned as well  . you can also use deleteDir()             
+                }
+            }
+        }
+    }
+    post{
+        success{
+            println " WHeeeww done"
+        }
+        unstable {
+            println 'Build Has suffered from some failed runs'
+        }
+        changed {
+            println 'build is changing too much'
+        }
+        always{
+            //deleteDir(); //Deprecated.. WSCLEANUP is better unless if you are using jenkins 2.5
+            step([$class: 'AuditPipelinePublisher', enabled: true]);
+            step([$class: 'WsCleanup'])
+        }
+        failure{
+            println " Failed"
+        }
+    }
+ }

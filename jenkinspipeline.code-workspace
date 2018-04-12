@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "C:\\Users\\<user>\\Documents\\jenkins_pipelines\\build-automation-scripts"
+		},
+		{
+			"path": "C:\\Users\\<user>\\Documents\\jenkins_pipelines\\resources"
+		},
+		{
+			"path": "C:\\Users\\<user>\\Documents\\jenkins_pipelines\\src"
+		},
+		{
+			"path": "C:\\Users\\<user>\\Documents\\jenkins_pipelines\\vars"
+		}
+	],
+	"settings": {
+		"files.defaultLanguage": "groovy"
+	}
+}
